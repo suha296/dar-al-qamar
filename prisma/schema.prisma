@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Villa {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  pricePerNight Float
+  phoneNumber String
+  address     String?
+  logo        String?
+  photos      Photo[]
+  manager     Manager  @relation(fields: [managerId], references: [id])
+  managerId   String
+  bookings    Booking[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Manager {
+  id        String   @id @default(cuid())
+  phoneNumber String @unique
+  name      String
+  email     String?  // Optional now
+  password  String?  // Optional now
+  villas    Villa[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OTP {
+  id        String   @id @default(cuid())
+  phoneNumber String
+  code      String
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  filename  String
+  path      String
+  villa     Villa    @relation(fields: [villaId], references: [id], onDelete: Cascade)
+  villaId   String
+  createdAt DateTime @default(now())
+}
+
+model Booking {
+  id          String   @id @default(cuid())
+  customerName String
+  customerEmail String
+  customerPhone String
+  checkIn     DateTime
+  checkOut    DateTime
+  totalPrice  Float
+  status      String   @default("PENDING")
+  villa       Villa    @relation(fields: [villaId], references: [id], onDelete: Cascade)
+  villaId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+} 
