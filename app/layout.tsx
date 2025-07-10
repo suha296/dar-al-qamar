@@ -4,6 +4,7 @@ import './globals.css'
 import { LanguageProvider } from '@/components/LanguageProvider'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -36,6 +37,7 @@ export default function RootLayout({
           </div>
         </LanguageProvider>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   )
