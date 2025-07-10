@@ -212,19 +212,19 @@ function findSameDayPatternAlternatives(rows: any[], checkIn: string, checkOut: 
 
 export async function POST(req: NextRequest) {
   const { checkIn, checkOut } = await req.json();
-  console.log('[API] Received:', { checkIn, checkOut });
+  // console.log('[API] Received:', { checkIn, checkOut });
   // Convention: check-in is the first night, check-out is the day the guest leaves (not a night spent)
   const checkInDate = new Date(checkIn);
   const checkOutDate = new Date(checkOut);
   const nightsCount = Math.round((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
-  console.log('[API] Calculated nights:', nightsCount, 'from', checkInDate.toISOString(), 'to', checkOutDate.toISOString());
+  // console.log('[API] Calculated nights:', nightsCount, 'from', checkInDate.toISOString(), 'to', checkOutDate.toISOString());
   const year = checkInDate.getFullYear();
   const sheetName = `${year}`;
   const gid = SHEET_GID_MAP[sheetName];
 
   // Use dateRangeNights to get the actual nights to check (should be nightsCount nights, starting from checkIn)
   const nights = dateRangeNights(checkIn, checkOut);
-  console.log('[API] Nights array:', nights.map(d => d.toISOString().slice(0, 10)));
+  // console.log('[API] Nights array:', nights.map(d => d.toISOString().slice(0, 10)));
 
   let available = true;
   let prices: number[] = [];
@@ -238,8 +238,8 @@ export async function POST(req: NextRequest) {
     originalTotal: number,
   } = null;
 
-  console.log(`Checking availability for ${nights.length} nights from ${checkIn} to ${checkOut}`);
-  console.log(`Sheet name: ${sheetName}, GID: ${gid || 'none'}`);
+  // console.log(`Checking availability for ${nights.length} nights from ${checkIn} to ${checkOut}`);
+  // console.log(`Sheet name: ${sheetName}, GID: ${gid || 'none'}`);
 
   if (gid) {
     try {
@@ -265,22 +265,22 @@ export async function POST(req: NextRequest) {
         let price = getDefaultPrice(d);
         if (!row) {
           prices.push(price);
-          console.log(`${normD} (${dayName}): No data found, using default price ${price} NIS`);
+          // console.log(`${normD} (${dayName}): No data found, using default price ${price} NIS`);
           continue;
         }
         if (row['Name'] && row['Name'].trim() !== '') {
           available = false;
-          console.log(`${normD} (${dayName}): Not available, Name: "${row['Name']}"`);
+          // console.log(`${normD} (${dayName}): Not available, Name: "${row['Name']}"`);
           break;
         }
         const parsedPrice = parseFloat((row['Price'] || '').replace(/[^\d.]/g, ''));
         if (!isNaN(parsedPrice) && parsedPrice >= 100) {
           price = parsedPrice;
           prices.push(price);
-          console.log(`${normD} (${dayName}): Using sheet price ${price} NIS`);
+          // console.log(`${normD} (${dayName}): Using sheet price ${price} NIS`);
         } else {
           prices.push(price);
-          console.log(`${normD} (${dayName}): Invalid or missing sheet price, using default ${price} NIS`);
+          // console.log(`${normD} (${dayName}): Invalid or missing sheet price, using default ${price} NIS`);
         }
       }
       // If not available, use the same full-year rows for alternatives
@@ -349,13 +349,13 @@ export async function POST(req: NextRequest) {
   } else {
     for (const d of nights) {
       prices.push(getDefaultPrice(d));
-      console.log(`${d.toISOString().slice(0, 10)} (${getDayName(d)}): No sheet, using default ${getDefaultPrice(d)} NIS`);
+      // console.log(`${d.toISOString().slice(0, 10)} (${getDayName(d)}): No sheet, using default ${getDefaultPrice(d)} NIS`);
     }
   }
 
   const { original, discounted } = calculateDiscountedTotal(prices);
 
-  console.log(`Final result: available=${available}, total=${discounted}, originalTotal=${original}, nights=${nights.length}`);
+  // console.log(`Final result: available=${available}, total=${discounted}, originalTotal=${original}, nights=${nights.length}`);
 
   // Normalize checkIn and checkOut to YYYY-MM-DD
   const normCheckIn = robustParseDate(checkIn) || checkIn;

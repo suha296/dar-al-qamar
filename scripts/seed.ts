@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Seeding database...')
+  // console.log('🌱 Seeding database...')
 
   // Create a test manager
   const manager = await prisma.manager.upsert({
@@ -15,7 +15,7 @@ async function main() {
     },
   })
 
-  console.log('✅ Created manager:', manager)
+  // console.log('✅ Created manager:', manager)
 
   // Create a test villa
   const villa = await prisma.villa.upsert({
@@ -32,9 +32,9 @@ async function main() {
     },
   })
 
-  console.log('✅ Created villa:', villa)
+  // console.log('✅ Created villa:', villa)
 
-  console.log('🎉 Database seeded successfully!')
+  // console.log('🎉 Database seeded successfully!')
 }
 
 main()

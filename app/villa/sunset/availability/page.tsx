@@ -17,10 +17,10 @@ export default function AvailabilityPage() {
   const params = useSearchParams();
   const router = useRouter();
   const { t, dir } = useLanguage();
-  console.log('[AvailabilityPage] --- COMPONENT RENDER ---');
-  console.log('[AvailabilityPage] router:', router);
-  console.log('[AvailabilityPage] params:', params);
-  console.log('[AvailabilityPage] t/dir:', { t, dir });
+  // console.log('[AvailabilityPage] --- COMPONENT RENDER ---');
+  // console.log('[AvailabilityPage] router:', router);
+  // console.log('[AvailabilityPage] params:', params);
+  // console.log('[AvailabilityPage] t/dir:', { t, dir });
   // Helper to normalize date to YYYY-MM-DD
   const normalizeDate = (date: string) => {
     if (!date) return '';
@@ -31,10 +31,10 @@ export default function AvailabilityPage() {
   };
   const checkInRaw = params.get('checkIn') || '';
   const checkOutRaw = params.get('checkOut') || '';
-  console.log('[AvailabilityPage] params.get', { checkInRaw, checkOutRaw });
+  // console.log('[AvailabilityPage] params.get', { checkInRaw, checkOutRaw });
   const checkIn = normalizeDate(checkInRaw);
   const checkOut = normalizeDate(checkOutRaw);
-  console.log('[AvailabilityPage] normalized:', { checkIn, checkOut });
+  // console.log('[AvailabilityPage] normalized:', { checkIn, checkOut });
   const [result, setResult] = useState<null | { 
     available: boolean; 
     total?: number; 
@@ -52,7 +52,7 @@ export default function AvailabilityPage() {
   }>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  console.log('[AvailabilityPage] state', { loading, error, result });
+  // console.log('[AvailabilityPage] state', { loading, error, result });
 
   // Helper function to get day pattern name
   const getDayPatternName = (startDate: string, endDate: string, t: (key: string) => string) => {
@@ -101,9 +101,9 @@ export default function AvailabilityPage() {
 
   // Refactored effect: depend on raw params
   React.useEffect(() => {
-    console.log('[AvailabilityPage] useEffect triggered', { checkInRaw, checkOutRaw, checkIn, checkOut });
+    // console.log('[AvailabilityPage] useEffect triggered', { checkInRaw, checkOutRaw, checkIn, checkOut });
     if (!checkIn || !checkOut) {
-      console.log('[AvailabilityPage] useEffect: Missing checkIn or checkOut, skipping fetch');
+      // console.log('[AvailabilityPage] useEffect: Missing checkIn or checkOut, skipping fetch');
       return;
     }
     setLoading(true);
@@ -112,18 +112,18 @@ export default function AvailabilityPage() {
     // Always send normalized dates to API
     const normCheckIn = normalizeDate(checkIn);
     const normCheckOut = normalizeDate(checkOut);
-    console.log('[AvailabilityPage] Fetching /api/availability', { normCheckIn, normCheckOut });
+    // console.log('[AvailabilityPage] Fetching /api/availability', { normCheckIn, normCheckOut });
     fetch('/api/availability', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ checkIn: normCheckIn, checkOut: normCheckOut, suggestAlternatives: true }),
     })
       .then(res => {
-        console.log('[AvailabilityPage] API response status', res.status);
+        // console.log('[AvailabilityPage] API response status', res.status);
         return res.json();
       })
       .then(data => {
-        console.log('[AvailabilityPage] API data', data);
+        // console.log('[AvailabilityPage] API data', data);
         setResult(data);
       })
       .catch((err) => {
@@ -131,7 +131,7 @@ export default function AvailabilityPage() {
         setError('Error checking availability.');
       })
       .finally(() => {
-        console.log('[AvailabilityPage] Fetch complete, setLoading(false)');
+        // console.log('[AvailabilityPage] Fetch complete, setLoading(false)');
         setLoading(false);
       });
   }, [checkInRaw, checkOutRaw]);
@@ -146,12 +146,12 @@ export default function AvailabilityPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center py-16 px-4" dir={dir}>
       <h1 className="text-3xl font-bold text-accent mb-10">{t('availability.title')}</h1>
-      {loading && (console.log('[AvailabilityPage] Rendering loading...', { loading }), <div className="text-lg text-text">{t('common.loading')}</div>)}
-      {error && (console.log('[AvailabilityPage] Rendering error', { error }), <div className="bg-red-100 text-red-700 px-4 py-2 rounded shadow">{t('availability.error')}</div>)}
+      {loading && (<div className="text-lg text-text">{t('common.loading')}</div>)}
+      {error && (<div className="bg-red-100 text-red-700 px-4 py-2 rounded shadow">{t('availability.error')}</div>)}
       {shouldShowError && (
         <div className="bg-red-100 text-red-700 px-4 py-2 rounded shadow mt-4">{t('availability.error')}</div>
       )}
-      {result && (console.log('[AvailabilityPage] Rendering result', { result }),
+      {result && (
         result.available ? (
           <div className="flex flex-col items-center justify-center gap-8 w-full">
             <div className="bg-green-50 border border-green-200 px-10 py-10 rounded-2xl shadow-lg flex flex-col items-center max-w-md w-full">

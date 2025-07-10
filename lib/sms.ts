@@ -13,10 +13,10 @@ export interface SMSConfig {
 
 // Mock SMS service for development
 export async function sendMockSMS(to: string, message: string): Promise<boolean> {
-  console.log('📱 Mock SMS sent:')
-  console.log(`To: ${to}`)
-  console.log(`Message: ${message}`)
-  console.log('---')
+  // console.log('📱 Mock SMS sent:')
+  // console.log(`To: ${to}`)
+  // console.log(`Message: ${message}`)
+  // console.log('---')
   
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1000))
@@ -39,7 +39,7 @@ export async function sendTwilioSMS(to: string, message: string, config: SMSConf
     //   to: to
     // })
     
-    console.log('📱 Twilio SMS sent:', { to, message })
+    // console.log('📱 Twilio SMS sent:', { to, message })
     return true
   } catch (error) {
     console.error('Twilio SMS error:', error)
@@ -67,7 +67,7 @@ export async function sendAWSSMS(to: string, message: string, config: SMSConfig)
     //   PhoneNumber: to
     // }).promise()
     
-    console.log('📱 AWS SNS SMS sent:', { to, message })
+    // console.log('📱 AWS SNS SMS sent:', { to, message })
     return true
   } catch (error) {
     console.error('AWS SNS SMS error:', error)

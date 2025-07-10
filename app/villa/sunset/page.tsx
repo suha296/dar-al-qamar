@@ -151,7 +151,7 @@ export default function SampleVilla() {
   // Replace the two DatePickers with a single range picker and custom input
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
   const [checkIn, checkOut] = dateRange;
-  console.log('[VillaPage] dateRange:', dateRange, 'checkIn:', checkIn, 'checkOut:', checkOut);
+  // console.log('[VillaPage] dateRange:', dateRange, 'checkIn:', checkIn, 'checkOut:', checkOut);
 
   // Always sort dateRange so checkIn is before checkOut
   const sortedDates = dateRange[0] && dateRange[1] && dateRange[0] > dateRange[1]
@@ -168,21 +168,21 @@ export default function SampleVilla() {
   const toYMD = (date: Date | null) => date && !isNaN(date.getTime()) ? date.toLocaleDateString('en-CA') : '';
 
   const handleCheck = () => {
-    console.log('[VillaPage] handleCheck called', { sortedCheckIn, sortedCheckOut });
+    // console.log('[VillaPage] handleCheck called', { sortedCheckIn, sortedCheckOut });
     if (!sortedCheckIn) return;
     // If checkOut is null or same as checkIn, set checkOut to checkIn + 1 day (single-night stay)
     let actualCheckOut = sortedCheckOut;
     if (!sortedCheckOut || (sortedCheckIn && sortedCheckOut && sortedCheckIn.getTime() === sortedCheckOut.getTime())) {
       actualCheckOut = new Date(sortedCheckIn.getTime());
       actualCheckOut.setDate(actualCheckOut.getDate() + 1);
-      console.log('[VillaPage] Adjusted checkOut for single-night stay:', actualCheckOut);
+      // console.log('[VillaPage] Adjusted checkOut for single-night stay:', actualCheckOut);
     }
     // Use only the date part in YYYY-MM-DD format, regardless of timezone
     const checkInISO = toYMD(sortedCheckIn);
     const checkOutISO = toYMD(actualCheckOut);
     setLastCheckInISO(checkInISO);
     setLastCheckOutISO(checkOutISO);
-    console.log('[VillaPage] handleCheck ISO strings', { checkInISO, checkOutISO });
+    // console.log('[VillaPage] handleCheck ISO strings', { checkInISO, checkOutISO });
     setLoading(true);
     router.push(`/villa/sunset/availability?checkIn=${checkInISO}&checkOut=${checkOutISO}`);
   };
