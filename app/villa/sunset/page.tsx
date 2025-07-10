@@ -293,7 +293,7 @@ export default function SampleVilla() {
         </div>
       </div>
       {/* No spacer: carousel should touch the navbar */}
-      <div ref={sliderRef} className="keen-slider fixed left-0 right-0 top-0 mb-8 overflow-hidden z-10" style={{height: '110vh', maxHeight: '700px', width: '100vw'}}>
+      <div key={dir} ref={sliderRef} className="keen-slider fixed left-0 right-0 top-0 mb-8 overflow-hidden z-10" style={{height: '110vh', maxHeight: '700px', width: '100vw'}}>
         {carouselImages.map((img, i) => (
           <div className="keen-slider__slide flex items-center justify-center w-screen h-full" key={img + i} style={{height: '100%'}}>
             <img
