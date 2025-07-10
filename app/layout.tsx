@@ -3,6 +3,7 @@ import { Poppins, Cairo } from 'next/font/google'
 import './globals.css'
 import { LanguageProvider } from '@/components/LanguageProvider'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -34,6 +35,7 @@ export default function RootLayout({
             {children}
           </div>
         </LanguageProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
