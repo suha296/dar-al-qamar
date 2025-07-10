@@ -36,14 +36,14 @@ export default function SampleVilla() {
 
   // Full gallery images (carousel + all from /gallery, only jpg/jpeg/png)
   const galleryImages = [
-    '/gallery/1.jpg',
-    '/gallery/2.jpg',
-    '/gallery/3.jpg',
-    '/gallery/4.jpg',
-    '/gallery/5.jpg',
-    '/gallery/6.jpg',
-    '/gallery/7.jpg',
-    '/gallery/8.png',
+    '/Gallery/1.jpg',
+    '/Gallery/2.jpg',
+    '/Gallery/3.jpg',
+    '/Gallery/4.jpg',
+    '/Gallery/5.jpg',
+    '/Gallery/6.jpg',
+    '/Gallery/7.jpg',
+    '/Gallery/8.png',
     ...carouselImages,
   ];
   const fullGalleryImages = [...galleryImages];
