@@ -18,8 +18,8 @@ const cairo = Cairo({
 })
 
 export const metadata: Metadata = {
-  title: 'Villa Manager - Multi-tenant Villa Rental System',
-  description: 'Professional villa rental management system',
+  title: 'Dar Al Qamar Villa Rentals',
+  description: 'Luxury villa rentals in Jericho – Dar Al Qamar',
 }
 
 export default function RootLayout({
