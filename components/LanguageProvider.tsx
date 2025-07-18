@@ -18,6 +18,7 @@ const translations = {
     // Common
     'common.loading': 'Loading...',
     'common.back': 'Back',
+    'common.next': 'Next',
     'weekday.short.Sun': 'Sun',
     'weekday.short.Mon': 'Mon',
     'weekday.short.Tue': 'Tue',
@@ -92,6 +93,7 @@ const translations = {
     // Common
     'common.loading': 'جاري التحميل...',
     'common.back': 'رجوع',
+    'common.next': 'التالي',
     'weekday.short.Sun': 'أحد',
     'weekday.short.Mon': 'إثنين',
     'weekday.short.Tue': 'ثلاثاء',

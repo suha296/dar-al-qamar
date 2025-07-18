@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import 'keen-slider/keen-slider.min.css';
 import { useKeenSlider } from 'keen-slider/react';
 
-export default function SampleVilla() {
+function SampleVilla() {
   const { t, dir } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -543,4 +543,6 @@ export default function SampleVilla() {
       </div>
     </div>
   );
-} 
+}
+
+export default SampleVilla; 
