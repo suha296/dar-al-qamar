@@ -155,7 +155,22 @@ export function AvailabilityCalendar({
     const dateStr = formatDate(date);
     const start = selectedDates[0];
     const end = selectedDates[1];
-    return dateStr >= start && dateStr <= end;
+    return dateStr >= start && dateStr < end; // Changed to < end to exclude checkout date
+  };
+
+  // New function to check if a date is unavailable within the selected range
+  const isDateUnavailableInRange = (date: Date) => {
+    if (!selectedDates[0] || !selectedDates[1]) return false;
+    const dateStr = formatDate(date);
+    const start = selectedDates[0];
+    const end = selectedDates[1];
+    
+    // Check if this date is within the range (excluding checkout date)
+    if (dateStr >= start && dateStr < end) {
+      // Check if this specific date is unavailable
+      return !isDateAvailable(date);
+    }
+    return false;
   };
 
   // Function to check if a date range is available using existing calendar data
@@ -427,6 +442,7 @@ export function AvailabilityCalendar({
               const inPast = isDateInPast(date);
               const selected = isDateSelected(date);
               const inRange = isDateInRange(date);
+              const unavailableInRange = isDateUnavailableInRange(date);
 
               // Check if this is a checkout-only day (unavailable but can be selected as checkout)
               const isCheckoutOnly = !available && !inPast && selectedDates[0] && !selectedDates[1] && (() => {
@@ -482,6 +498,10 @@ export function AvailabilityCalendar({
                 bgColor = 'bg-yellow-50';
                 textColor = 'text-yellow-800';
                 borderColor = 'border-yellow-200';
+              } else if (unavailableInRange) {
+                bgColor = 'bg-red-100';
+                textColor = 'text-red-600';
+                borderColor = 'border-red-200';
               }
 
               return (
@@ -495,10 +515,14 @@ export function AvailabilityCalendar({
                     ${!inPast && canSelect ? 'hover:bg-blue-50 hover:border-blue-300 cursor-pointer' : 'cursor-not-allowed'}
                     ${selected ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
                     flex flex-col items-center justify-center text-xs
+                    ${selected ? '!bg-blue-500 !text-white' : ''}
                   `}
                 >
-                  <span className="font-medium">{day}</span>
-                  {available && price && !inPast && (() => {
+                  <span className={`font-medium ${selected ? '!text-white' : ''}`}>{day}</span>
+                  {unavailableInRange && (
+                    <span className="text-xs font-semibold text-red-600">{t('calendar.booked')}</span>
+                  )}
+                  {available && price && !inPast && !unavailableInRange && (() => {
                     // Hide price on checkout date if both check-in and check-out are available
                     if (selectedDates[0] && selectedDates[1] && available) {
                       const checkInDate = new Date(selectedDates[0]);
@@ -514,7 +538,11 @@ export function AvailabilityCalendar({
                         }
                       }
                     }
-                    return <span className="text-xs opacity-75">₪{price}</span>;
+                    return (
+                      <span className={`text-xs ${selected ? '!text-white' : 'opacity-75'}`}>
+                        ₪{price}
+                      </span>
+                    );
                   })()}
                 </button>
               );
