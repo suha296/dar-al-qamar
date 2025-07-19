@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from './LanguageProvider';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { ConversionTracker } from '@/lib/analytics';
 
 interface AvailabilityData {
   available: boolean;
@@ -80,6 +81,9 @@ export function AvailabilityCalendar({
       const shouldCollapse = isAvailable !== undefined ? isAvailable : isCollapsed;
       setCollapsed(shouldCollapse);
       setHasInitialized(true);
+      
+      // Track calendar open
+      ConversionTracker.trackCalendarOpen('availability_page');
     }
   }, [isCollapsed, isAvailable, hasInitialized]);
 

@@ -1,12 +1,17 @@
 'use client';
 import { useLanguage } from './LanguageProvider';
 import { Globe } from 'lucide-react';
+import { ConversionTracker } from '@/lib/analytics';
 
 export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
 
   const toggleLanguage = () => {
-    setLanguage(language === 'en' ? 'ar' : 'en');
+    const newLanguage = language === 'en' ? 'ar' : 'en';
+    setLanguage(newLanguage);
+    
+    // Track language switch
+    ConversionTracker.trackLanguageSwitch(language, newLanguage);
   };
 
   return (
