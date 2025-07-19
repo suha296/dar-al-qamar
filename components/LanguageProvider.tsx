@@ -87,6 +87,19 @@ const translations = {
     'villa.parking': 'Car Parking',
     'villa.morePictures': 'More Pictures',
     'villa.showAllGallery': 'Show All',
+    // Calendar
+    'calendar.available': 'Available',
+    'calendar.booked': 'Booked',
+    'calendar.selected': 'Selected',
+    'calendar.weekday': 'Middle of week',
+    'calendar.weekend': 'Weekend',
+    'calendar.previousMonth': 'Previous Month',
+    'calendar.nextMonth': 'Next Month',
+    'calendar.checkoutOnly': 'Checkout Only',
+    'calendar.selectedRange': 'Selected Range',
+    'calendar.selectDates': 'Select dates to check availability',
+    'calendar.expand': 'Expand calendar',
+    'calendar.collapse': 'Collapse calendar',
     // ... add more as needed
   },
   ar: {
@@ -162,6 +175,19 @@ const translations = {
     'villa.parking': 'موقف سيارات',
     'villa.morePictures': 'المزيد من الصور',
     'villa.showAllGallery': 'عرض كل الصور',
+    // Calendar
+    'calendar.available': 'متوفر',
+    'calendar.booked': 'محجوز',
+    'calendar.selected': 'التواريخ المختارة',
+    'calendar.weekday': 'منتصف الأسبوع',
+    'calendar.weekend': 'عطلة نهاية الأسبوع',
+    'calendar.previousMonth': 'الشهر السابق',
+    'calendar.nextMonth': 'الشهر التالي',
+    'calendar.checkoutOnly': 'تاريخ مغادرة فقط',
+    'calendar.selectedRange': 'المدة المختارة',
+    'calendar.selectDates': 'اختر التواريخ للتحقق من التوفر',
+    'calendar.expand': 'توسيع التقويم',
+    'calendar.collapse': 'طي التقويم',
     // ... add more as needed
   }
 };

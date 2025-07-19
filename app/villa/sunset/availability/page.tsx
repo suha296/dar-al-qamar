@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/LanguageProvider';
+import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
+import { Calendar } from 'lucide-react';
 
 interface AltRange {
   start: string;
@@ -52,7 +54,77 @@ export default function AvailabilityPage() {
   }>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isCalendarSelection, setIsCalendarSelection] = useState(false);
   // console.log('[AvailabilityPage] state', { loading, error, result });
+
+  // Handle new date selection from calendar
+  const handleCalendarDateSelect = (newCheckIn: string, newCheckOut: string, availabilityData?: any) => {
+    console.log('Calendar selected dates:', { newCheckIn, newCheckOut, availabilityData });
+    
+    // Update the URL without triggering a full page reload
+    const newUrl = `/villa/sunset/availability?checkIn=${newCheckIn}&checkOut=${newCheckOut}`;
+    window.history.pushState({}, '', newUrl);
+    
+    // If we have availability data from calendar, use it directly
+    if (availabilityData) {
+      setResult(availabilityData);
+      setLoading(false);
+      setError('');
+      
+      // Scroll to results after a short delay
+      setTimeout(() => {
+        const resultsSection = document.getElementById('results-section');
+        if (resultsSection) {
+          resultsSection.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
+      }, 500);
+    } else {
+      // Fallback to API call if no calendar data
+      checkAvailability(newCheckIn, newCheckOut);
+    }
+  };
+
+  // Extract availability checking logic into a separate function
+  const checkAvailability = (checkInDate: string, checkOutDate: string) => {
+    if (!checkInDate || !checkOutDate) {
+      return;
+    }
+    
+    // Only show loading if it's not a calendar selection
+    if (!isCalendarSelection) {
+      setLoading(true);
+      setResult(null);
+    }
+    setError('');
+    
+    // Always send normalized dates to API
+    const normCheckIn = normalizeDate(checkInDate);
+    const normCheckOut = normalizeDate(checkOutDate);
+    console.log('[AvailabilityPage] Fetching /api/availability', { normCheckIn, normCheckOut });
+    fetch('/api/availability', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ checkIn: normCheckIn, checkOut: normCheckOut, suggestAlternatives: true }),
+    })
+      .then(res => {
+        return res.json();
+      })
+      .then(data => {
+        console.log('[AvailabilityPage] API data', data);
+        setResult(data);
+      })
+      .catch((err) => {
+        console.error('[AvailabilityPage] Error checking availability', err);
+        setError('Error checking availability.');
+      })
+      .finally(() => {
+        setLoading(false);
+        setIsCalendarSelection(false); // Reset the flag
+      });
+  };
 
   // Helper function to get day pattern name
   const getDayPatternName = (startDate: string, endDate: string, t: (key: string) => string) => {
@@ -106,34 +178,14 @@ export default function AvailabilityPage() {
       // console.log('[AvailabilityPage] useEffect: Missing checkIn or checkOut, skipping fetch');
       return;
     }
+    
+    // For initial load, always show loading
     setLoading(true);
-    setError('');
     setResult(null);
-    // Always send normalized dates to API
-    const normCheckIn = normalizeDate(checkIn);
-    const normCheckOut = normalizeDate(checkOut);
-    // console.log('[AvailabilityPage] Fetching /api/availability', { normCheckIn, normCheckOut });
-    fetch('/api/availability', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ checkIn: normCheckIn, checkOut: normCheckOut, suggestAlternatives: true }),
-    })
-      .then(res => {
-        // console.log('[AvailabilityPage] API response status', res.status);
-        return res.json();
-      })
-      .then(data => {
-        // console.log('[AvailabilityPage] API data', data);
-        setResult(data);
-      })
-      .catch((err) => {
-        console.error('[AvailabilityPage] Error checking availability', err);
-        setError('Error checking availability.');
-      })
-      .finally(() => {
-        // console.log('[AvailabilityPage] Fetch complete, setLoading(false)');
-        setLoading(false);
-      });
+    setError('');
+    
+    // Use the extracted function for consistency
+    checkAvailability(checkIn, checkOut);
   }, [checkInRaw, checkOutRaw]);
 
   // Fallback: if result is null, not loading, and both dates are present, show error
@@ -146,136 +198,159 @@ export default function AvailabilityPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center py-16 px-4" dir={dir}>
       <h1 className="text-3xl font-bold text-accent mb-10">{t('availability.title')}</h1>
+      
+      {/* Calendar Section */}
+      {result && (
+        <div className="mb-8 w-full max-w-4xl">
+          <h2 className="text-xl font-semibold text-accent mb-4 text-center flex items-center justify-center gap-2">
+            <Calendar className="h-6 w-6 text-accent" />
+            <span>{dir === 'rtl' ? 'تحقق من تواريخ أخرى' : 'Check Other Dates'}</span>
+          </h2>
+          <div className="flex justify-center">
+            <AvailabilityCalendar
+              onDateSelect={handleCalendarDateSelect}
+              selectedCheckIn={checkIn}
+              selectedCheckOut={checkOut}
+              isCollapsed={result?.available === true}
+              isAvailable={result?.available}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Results Section */}
       {loading && (<div className="text-lg text-text">{t('common.loading')}</div>)}
       {error && (<div className="bg-red-100 text-red-700 px-4 py-2 rounded shadow">{t('availability.error')}</div>)}
       {shouldShowError && (
         <div className="bg-red-100 text-red-700 px-4 py-2 rounded shadow mt-4">{t('availability.error')}</div>
       )}
       {result && (
-        result.available ? (
-          <div className="flex flex-col items-center justify-center gap-8 w-full">
-            <div className="bg-green-50 border border-green-200 px-10 py-10 rounded-2xl shadow-lg flex flex-col items-center max-w-md w-full">
-              <div className="text-3xl font-extrabold text-green-700 mb-4">{t('availability.available')}</div>
-              {/* Summary Section */}
-              <div className="mb-4 w-full text-center text-base text-green-900">
-                <div>
-                  {onlyDate(checkIn)} ({getDayName(checkIn, t)}) {t('availability.to')} {onlyDate(checkOut)} ({getDayName(checkOut, t)})
+        <div id="results-section">
+          {result.available ? (
+            <div className="flex flex-col items-center justify-center gap-8 w-full">
+              <div className="bg-green-50 border border-green-200 px-10 py-10 rounded-2xl shadow-lg flex flex-col items-center max-w-md w-full">
+                <div className="text-3xl font-extrabold text-green-700 mb-4">{t('availability.available')}</div>
+                {/* Summary Section */}
+                <div className="mb-4 w-full text-center text-base text-green-900">
+                  <div>
+                    {onlyDate(checkIn)} ({getDayName(checkIn, t)}) {t('availability.to')} {onlyDate(checkOut)} ({getDayName(checkOut, t)})
+                  </div>
+                  <div>
+                    {t('availability.nights')}: {result.nights}
+                  </div>
                 </div>
-                <div>
-                  {t('availability.nights')}: {result.nights}
-                </div>
-              </div>
-              <div className="text-lg text-green-900 mb-2">{t('availability.totalPrice')}</div>
-              <div className="flex flex-col items-center mb-6">
-                {result.nights && result.nights > 1 && typeof result.originalTotal === 'number' && (
-                  <span className="text-2xl text-gray-400 line-through mb-1">₪{result.originalTotal}</span>
-                )}
-                <span className="text-5xl font-extrabold text-green-800">₪{result.total}</span>
-              </div>
-              <a
-                href={`https://wa.me/972533920842?text=${encodeURIComponent(getWhatsappMessage(checkIn, checkOut, t, dir === 'rtl' ? 'ar' : 'en', result.nights))}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-green-600 text-white px-8 py-4 rounded-xl text-xl font-bold shadow hover:bg-green-700 transition w-full max-w-md text-center block"
-              >
-                {t('availability.reserveWhatsapp')}
-              </a>
-            </div>
-            {result.extraNightSuggestion && (
-              <div className="bg-yellow-100 border border-yellow-200 px-10 py-10 rounded-2xl shadow-lg flex flex-col items-center max-w-md w-full">
-                <div className="text-2xl font-bold text-yellow-700 mb-4">{t('availability.extraNightSuggestion')}</div>
-                <div className="text-base text-yellow-900 font-semibold">
-                  {result.extraNightSuggestion.start} ({getDayName(result.extraNightSuggestion.start, t)}) {t('availability.to')} {result.extraNightSuggestion.end} ({getDayName(result.extraNightSuggestion.end, t)}) ({result.extraNightSuggestion.nights} {t('availability.nightsLabel')})
-                </div>
-                <div className="text-lg text-yellow-900 mb-2">{t('availability.totalPrice')}</div>
+                <div className="text-lg text-green-900 mb-2">{t('availability.totalPrice')}</div>
                 <div className="flex flex-col items-center mb-6">
-                  {result.extraNightSuggestion.nights > 1 && typeof result.extraNightSuggestion.originalTotal === 'number' && (
-                    <span className="text-gray-400 line-through text-lg">₪{result.extraNightSuggestion.originalTotal}</span>
+                  {result.nights && result.nights > 1 && typeof result.originalTotal === 'number' && (
+                    <span className="text-2xl text-gray-400 line-through mb-1">₪{result.originalTotal}</span>
                   )}
-                  <span className="text-5xl font-extrabold text-yellow-800">₪{result.extraNightSuggestion.total}</span>
+                  <span className="text-5xl font-extrabold text-green-800">₪{result.total}</span>
                 </div>
                 <a
-                  href={`https://wa.me/972533920842?text=${encodeURIComponent(getWhatsappMessage(result.extraNightSuggestion.start, result.extraNightSuggestion.end, t, dir === 'rtl' ? 'ar' : 'en', result.extraNightSuggestion.nights))}`}
+                  href={`https://wa.me/972533920842?text=${encodeURIComponent(getWhatsappMessage(checkIn, checkOut, t, dir === 'rtl' ? 'ar' : 'en', result.nights))}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 flex items-center gap-2 bg-yellow-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow hover:bg-yellow-700 transition w-fit"
+                  className="bg-green-600 text-white px-8 py-4 rounded-xl text-xl font-bold shadow hover:bg-green-700 transition w-full max-w-md text-center block"
                 >
-                  <span className="inline-block text-lg" style={{lineHeight: 1}} role="img" aria-label="Phone">📞</span>
-                  {t('availability.reserve')}
+                  {t('availability.reserveWhatsapp')}
                 </a>
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="bg-red-50 border border-red-200 px-10 py-10 rounded-2xl shadow-lg flex flex-col items-center max-w-md w-full mb-8">
-            <div className="text-xl font-bold text-red-700 mb-4">{t('availability.notAvailable')}</div>
-            <div className="mb-4 text-gray-800">{t('availability.selected')}: {onlyDate(checkIn)} ({getDayName(checkIn, t)}) {t('availability.to')} {onlyDate(checkOut)} ({getDayName(checkOut, t)}) ({result?.nights || 0} {t('availability.nightsLabel')})</div>
-            
-            {/* Same Day Pattern Alternatives */}
-            {result.sameDayPatternAlternatives && result.sameDayPatternAlternatives.length > 0 && (
-              <div className="mt-6 w-full">
-                <div className="text-lg font-semibold mb-3 text-accent">
-                  {t('availability.nextAvailable')} {getDayPatternName(checkIn, checkOut, t)}:
+              {result.extraNightSuggestion && (
+                <div className="bg-yellow-100 border border-yellow-200 px-10 py-10 rounded-2xl shadow-lg flex flex-col items-center max-w-md w-full">
+                  <div className="text-2xl font-bold text-yellow-700 mb-4">{t('availability.extraNightSuggestion')}</div>
+                  <div className="text-base text-yellow-900 font-semibold">
+                    {result.extraNightSuggestion.start} ({getDayName(result.extraNightSuggestion.start, t)}) {t('availability.to')} {result.extraNightSuggestion.end} ({getDayName(result.extraNightSuggestion.end, t)}) ({result.extraNightSuggestion.nights} {t('availability.nightsLabel')})
+                  </div>
+                  <div className="text-lg text-yellow-900 mb-2">{t('availability.totalPrice')}</div>
+                  <div className="flex flex-col items-center mb-6">
+                    {result.extraNightSuggestion.nights > 1 && typeof result.extraNightSuggestion.originalTotal === 'number' && (
+                      <span className="text-gray-400 line-through text-lg">₪{result.extraNightSuggestion.originalTotal}</span>
+                    )}
+                    <span className="text-5xl font-extrabold text-yellow-800">₪{result.extraNightSuggestion.total}</span>
+                  </div>
+                  <a
+                    href={`https://wa.me/972533920842?text=${encodeURIComponent(getWhatsappMessage(result.extraNightSuggestion.start, result.extraNightSuggestion.end, t, dir === 'rtl' ? 'ar' : 'en', result.extraNightSuggestion.nights))}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 flex items-center gap-2 bg-yellow-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow hover:bg-yellow-700 transition w-fit"
+                  >
+                    <span className="inline-block text-lg" style={{lineHeight: 1}} role="img" aria-label="Phone">📞</span>
+                    {t('availability.reserve')}
+                  </a>
                 </div>
-                <ul className="space-y-3">
-                  {result.sameDayPatternAlternatives.map((alt, i) => (
-                    <li key={`same-pattern-${i}`} className="bg-white rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between border border-border">
-                      <span className="text-base text-text">
-                        {onlyDate(alt.start)} ({getDayName(alt.start, t)}) {t('availability.to')} {onlyDate(alt.end)} ({getDayName(alt.end, t)}) ({alt.nights} {t('availability.nightsLabel')})
-                      </span>
-                      <span className="flex flex-col items-end">
-                        {alt.nights > 1 && typeof alt.originalTotal === 'number' && (
-                          <span className="text-gray-400 line-through text-lg">₪{alt.originalTotal}</span>
-                        )}
-                        <span className="font-bold text-green-700 text-lg">₪{alt.total}</span>
-                        <a
-                          href={`https://wa.me/972533920842?text=${encodeURIComponent(getWhatsappMessage(alt.start, alt.end, t, dir === 'rtl' ? 'ar' : 'en', alt.nights))}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow hover:bg-green-700 transition w-fit"
-                        >
-                          <span className="inline-block text-lg" style={{lineHeight: 1}} role="img" aria-label="Phone">📞</span>
-                          {t('availability.reserve')}
-                        </a>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            
-            {/* Other available options */}
-            {result.alternatives && result.alternatives.length > 0 && (
-              <div className="mt-6 w-full">
-                <div className="text-lg font-semibold mb-3 text-accent">{t('availability.otherOptions')}</div>
-                <ul className="space-y-3">
-                  {result.alternatives.map((alt, i) => (
-                    <li key={`other-${i}`} className="bg-white rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between border border-border">
-                      <span className="text-base text-text">
-                        {onlyDate(alt.start)} ({getDayName(alt.start, t)}) {t('availability.to')} {onlyDate(alt.end)} ({getDayName(alt.end, t)}) ({alt.nights} {t('availability.nightsLabel')})
-                      </span>
-                      <span className="flex flex-col items-end">
-                        {alt.nights > 1 && typeof alt.originalTotal === 'number' && (
-                          <span className="text-gray-400 line-through text-lg">₪{alt.originalTotal}</span>
-                        )}
-                        <span className="font-bold text-green-700 text-lg">₪{alt.total}</span>
-                        <a
-                          href={`https://wa.me/972533920842?text=${encodeURIComponent(getWhatsappMessage(alt.start, alt.end, t, dir === 'rtl' ? 'ar' : 'en', alt.nights))}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow hover:bg-green-700 transition w-fit"
-                        >
-                          <span className="inline-block text-lg" style={{lineHeight: 1}} role="img" aria-label="Phone">📞</span>
-                          {t('availability.reserve')}
-                        </a>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )
+              )}
+            </div>
+          ) : (
+            <div className="bg-red-50 border border-red-200 px-10 py-10 rounded-2xl shadow-lg flex flex-col items-center max-w-md w-full mb-8">
+              <div className="text-xl font-bold text-red-700 mb-4">{t('availability.notAvailable')}</div>
+              <div className="mb-4 text-gray-800">{t('availability.selected')}: {onlyDate(checkIn)} ({getDayName(checkIn, t)}) {t('availability.to')} {onlyDate(checkOut)} ({getDayName(checkOut, t)}) ({result?.nights || 0} {t('availability.nightsLabel')})</div>
+              
+              {/* Same Day Pattern Alternatives */}
+              {result.sameDayPatternAlternatives && result.sameDayPatternAlternatives.length > 0 && (
+                <div className="mt-6 w-full">
+                  <div className="text-lg font-semibold mb-3 text-accent">
+                    {t('availability.nextAvailable')} {getDayPatternName(checkIn, checkOut, t)}:
+                  </div>
+                  <ul className="space-y-3">
+                    {result.sameDayPatternAlternatives.map((alt, i) => (
+                      <li key={`same-pattern-${i}`} className="bg-white rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between border border-border">
+                        <span className="text-base text-text">
+                          {onlyDate(alt.start)} ({getDayName(alt.start, t)}) {t('availability.to')} {onlyDate(alt.end)} ({getDayName(alt.end, t)}) ({alt.nights} {t('availability.nightsLabel')})
+                        </span>
+                        <span className="flex flex-col items-end">
+                          {alt.nights > 1 && typeof alt.originalTotal === 'number' && (
+                            <span className="text-gray-400 line-through text-lg">₪{alt.originalTotal}</span>
+                          )}
+                          <span className="font-bold text-green-700 text-lg">₪{alt.total}</span>
+                          <a
+                            href={`https://wa.me/972533920842?text=${encodeURIComponent(getWhatsappMessage(alt.start, alt.end, t, dir === 'rtl' ? 'ar' : 'en', alt.nights))}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow hover:bg-green-700 transition w-fit"
+                          >
+                            <span className="inline-block text-lg" style={{lineHeight: 1}} role="img" aria-label="Phone">📞</span>
+                            {t('availability.reserve')}
+                          </a>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {/* Other available options */}
+              {result.alternatives && result.alternatives.length > 0 && (
+                <div className="mt-6 w-full">
+                  <div className="text-lg font-semibold mb-3 text-accent">{t('availability.otherOptions')}</div>
+                  <ul className="space-y-3">
+                    {result.alternatives.map((alt, i) => (
+                      <li key={`other-${i}`} className="bg-white rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between border border-border">
+                        <span className="text-base text-text">
+                          {onlyDate(alt.start)} ({getDayName(alt.start, t)}) {t('availability.to')} {onlyDate(alt.end)} ({getDayName(alt.end, t)}) ({alt.nights} {t('availability.nightsLabel')})
+                        </span>
+                        <span className="flex flex-col items-end">
+                          {alt.nights > 1 && typeof alt.originalTotal === 'number' && (
+                            <span className="text-gray-400 line-through text-lg">₪{alt.originalTotal}</span>
+                          )}
+                          <span className="font-bold text-green-700 text-lg">₪{alt.total}</span>
+                          <a
+                            href={`https://wa.me/972533920842?text=${encodeURIComponent(getWhatsappMessage(alt.start, alt.end, t, dir === 'rtl' ? 'ar' : 'en', alt.nights))}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow hover:bg-green-700 transition w-fit"
+                          >
+                            <span className="inline-block text-lg" style={{lineHeight: 1}} role="img" aria-label="Phone">📞</span>
+                            {t('availability.reserve')}
+                          </a>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
       {/* Back Button */}
       <button

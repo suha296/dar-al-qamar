@@ -22,6 +22,8 @@ function dateRangeNights(start: string, end: string) {
   const result: Date[] = [];
   let current = new Date(start);
   const last = new Date(end);
+  // The end date is the checkout date (day they leave), not a night they stay
+  // So we include all nights from start up to (but not including) the end date
   while (current < last) {
     result.push(new Date(current));
     current.setDate(current.getDate() + 1);
