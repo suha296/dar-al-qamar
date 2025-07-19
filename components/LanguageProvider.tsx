@@ -100,6 +100,9 @@ const translations = {
     'calendar.selectDates': 'Select dates to check availability',
     'calendar.expand': 'Expand calendar',
     'calendar.collapse': 'Collapse calendar',
+    'reservation.clickToReserve': 'Click Here to Reserve',
+    'reservation.opensWhatsApp': 'Opens WhatsApp automatically',
+    'reservation.reserveViaWhatsApp': 'Reserve via WhatsApp',
     // ... add more as needed
   },
   ar: {
@@ -188,6 +191,9 @@ const translations = {
     'calendar.selectDates': 'اختر التواريخ للتحقق من التوفر',
     'calendar.expand': 'توسيع التقويم',
     'calendar.collapse': 'طي التقويم',
+    'reservation.clickToReserve': 'انقر هنا للحجز',
+    'reservation.opensWhatsApp': 'يفتح تطبيق واتساب تلقائياً',
+    'reservation.reserveViaWhatsApp': 'احجز عبر واتساب',
     // ... add more as needed
   }
 };
