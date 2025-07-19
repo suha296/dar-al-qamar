@@ -103,6 +103,11 @@ const translations = {
     'reservation.clickToReserve': 'Click Here to Reserve',
     'reservation.opensWhatsApp': 'Opens WhatsApp automatically',
     'reservation.reserveViaWhatsApp': 'Reserve via WhatsApp',
+    // Share functionality
+    'share.whatsapp': 'Share via WhatsApp',
+    'share.copyLink': 'Copy Link',
+    'share.copied': 'Copied!',
+    'share.sharing': 'Sharing...',
     // ... add more as needed
   },
   ar: {
@@ -194,6 +199,11 @@ const translations = {
     'reservation.clickToReserve': 'انقر هنا للحجز',
     'reservation.opensWhatsApp': 'يفتح تطبيق واتساب تلقائياً',
     'reservation.reserveViaWhatsApp': 'احجز عبر واتساب',
+    // Share functionality
+    'share.whatsapp': 'شارك عبر واتساب',
+    'share.copyLink': 'نسخ الرابط',
+    'share.copied': 'تم النسخ!',
+    'share.sharing': 'جاري المشاركة...',
     // ... add more as needed
   }
 };

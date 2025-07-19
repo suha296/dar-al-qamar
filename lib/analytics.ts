@@ -249,6 +249,29 @@ export const ConversionTracker = {
       timestamp: new Date().toISOString(),
     });
   },
+
+  // Track share events
+  trackShareEvent: (shareType: 'whatsapp' | 'native' | 'copy_link', checkIn: string, checkOut: string, available: boolean) => {
+    trackEvent('share_result', {
+      shareType,
+      checkIn,
+      checkOut,
+      available,
+      timestamp: new Date().toISOString(),
+      sessionId: getSessionId()
+    });
+  },
+
+  // Track screenshot capture
+  trackScreenshotCapture: (checkIn: string, checkOut: string, available: boolean) => {
+    trackEvent('screenshot_capture', {
+      checkIn,
+      checkOut,
+      available,
+      timestamp: new Date().toISOString(),
+      sessionId: getSessionId()
+    });
+  },
 };
 
 // Helper function to calculate nights between dates

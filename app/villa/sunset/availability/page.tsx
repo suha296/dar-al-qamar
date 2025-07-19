@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/LanguageProvider';
 import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
+import { ShareButton } from '@/components/ShareButton';
 import { Calendar } from 'lucide-react';
 import { ConversionTracker } from '@/lib/analytics';
 
@@ -292,6 +293,16 @@ export default function AvailabilityPage() {
                     </div>
                   </div>
                 </a>
+                
+                {/* Share Button */}
+                <ShareButton
+                  checkIn={checkIn}
+                  checkOut={checkOut}
+                  result={result}
+                  t={t}
+                  dir={dir}
+                  language={dir === 'rtl' ? 'ar' : 'en'}
+                />
               </div>
               {result.extraNightSuggestion && (
                 <div className="bg-yellow-100 border border-yellow-200 px-10 py-10 rounded-2xl shadow-lg flex flex-col items-center max-w-md w-full">
@@ -325,6 +336,16 @@ export default function AvailabilityPage() {
             <div className="bg-red-50 border border-red-200 px-10 py-10 rounded-2xl shadow-lg flex flex-col items-center max-w-md w-full mb-8">
               <div className="text-xl font-bold text-red-700 mb-4">{t('availability.notAvailable')}</div>
               <div className="mb-4 text-gray-800">{t('availability.selected')}: {onlyDate(checkIn)} ({getDayName(checkIn, t)}) {t('availability.to')} {onlyDate(checkOut)} ({getDayName(checkOut, t)}) ({result?.nights || 0} {t('availability.nightsLabel')})</div>
+              
+              {/* Share Button for unavailable results */}
+              <ShareButton
+                checkIn={checkIn}
+                checkOut={checkOut}
+                result={result}
+                t={t}
+                dir={dir}
+                language={dir === 'rtl' ? 'ar' : 'en'}
+              />
               
               {/* Same Day Pattern Alternatives */}
               {result.sameDayPatternAlternatives && result.sameDayPatternAlternatives.length > 0 && (
