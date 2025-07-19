@@ -64,11 +64,25 @@ export default function AvailabilityPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isCalendarSelection, setIsCalendarSelection] = useState(false);
+  
+  // Add state to track current selected dates
+  const [currentCheckIn, setCurrentCheckIn] = useState(checkIn);
+  const [currentCheckOut, setCurrentCheckOut] = useState(checkOut);
+  
+  // Update current dates when URL params change
+  useEffect(() => {
+    setCurrentCheckIn(checkIn);
+    setCurrentCheckOut(checkOut);
+  }, [checkIn, checkOut]);
   // console.log('[AvailabilityPage] state', { loading, error, result });
 
   // Handle new date selection from calendar
   const handleCalendarDateSelect = (newCheckIn: string, newCheckOut: string, availabilityData?: any) => {
     console.log('Calendar selected dates:', { newCheckIn, newCheckOut, availabilityData });
+    
+    // Update current dates state immediately
+    setCurrentCheckIn(newCheckIn);
+    setCurrentCheckOut(newCheckOut);
     
     // Track calendar date selection
     ConversionTracker.trackCalendarDateSelect(newCheckIn, newCheckOut, 'availability_page');
@@ -239,8 +253,8 @@ export default function AvailabilityPage() {
           <div className="flex justify-center">
             <AvailabilityCalendar
               onDateSelect={handleCalendarDateSelect}
-              selectedCheckIn={checkIn}
-              selectedCheckOut={checkOut}
+              selectedCheckIn={currentCheckIn}
+              selectedCheckOut={currentCheckOut}
               isCollapsed={result?.available === true}
               isAvailable={result?.available}
             />
@@ -263,7 +277,7 @@ export default function AvailabilityPage() {
                 {/* Summary Section */}
                 <div className="mb-4 w-full text-center text-base text-green-900">
                   <div>
-                    {onlyDate(checkIn)} ({getDayName(checkIn, t)}) {t('availability.to')} {onlyDate(checkOut)} ({getDayName(checkOut, t)})
+                    {onlyDate(currentCheckIn)} ({getDayName(currentCheckIn, t)}) {t('availability.to')} {onlyDate(currentCheckOut)} ({getDayName(currentCheckOut, t)})
                   </div>
                   <div>
                     {t('availability.nights')}: {result.nights}
@@ -277,11 +291,11 @@ export default function AvailabilityPage() {
                   <span className="text-5xl font-extrabold text-green-800">₪{result.total}</span>
                 </div>
                 <a
-                  href={`https://wa.me/972533920842?text=${encodeURIComponent(getWhatsappMessage(checkIn, checkOut, t, dir === 'rtl' ? 'ar' : 'en', result.nights))}`}
+                  href={`https://wa.me/972533920842?text=${encodeURIComponent(getWhatsappMessage(currentCheckIn, currentCheckOut, t, dir === 'rtl' ? 'ar' : 'en', result.nights))}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-green-600 text-white px-8 py-4 rounded-xl text-xl font-bold shadow hover:bg-green-700 transition w-full max-w-md text-center block"
-                  onClick={() => ConversionTracker.trackCtaClick('whatsapp', checkIn, checkOut, result.total)}
+                  onClick={() => ConversionTracker.trackCtaClick('whatsapp', currentCheckIn, currentCheckOut, result.total)}
                 >
                   <div className="flex items-center justify-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-8 h-8" fill="currentColor">
@@ -296,8 +310,8 @@ export default function AvailabilityPage() {
                 
                 {/* Share Button */}
                 <ShareButton
-                  checkIn={checkIn}
-                  checkOut={checkOut}
+                  checkIn={currentCheckIn}
+                  checkOut={currentCheckOut}
                   result={result}
                   t={t}
                   dir={dir}
@@ -335,12 +349,12 @@ export default function AvailabilityPage() {
           ) : (
             <div className="bg-red-50 border border-red-200 px-10 py-10 rounded-2xl shadow-lg flex flex-col items-center max-w-md w-full mb-8">
               <div className="text-xl font-bold text-red-700 mb-4">{t('availability.notAvailable')}</div>
-              <div className="mb-4 text-gray-800">{t('availability.selected')}: {onlyDate(checkIn)} ({getDayName(checkIn, t)}) {t('availability.to')} {onlyDate(checkOut)} ({getDayName(checkOut, t)}) ({result?.nights || 0} {t('availability.nightsLabel')})</div>
+              <div className="mb-4 text-gray-800">{t('availability.selected')}: {onlyDate(currentCheckIn)} ({getDayName(currentCheckIn, t)}) {t('availability.to')} {onlyDate(currentCheckOut)} ({getDayName(currentCheckOut, t)}) ({result?.nights || 0} {t('availability.nightsLabel')})</div>
               
               {/* Share Button for unavailable results */}
               <ShareButton
-                checkIn={checkIn}
-                checkOut={checkOut}
+                checkIn={currentCheckIn}
+                checkOut={currentCheckOut}
                 result={result}
                 t={t}
                 dir={dir}
