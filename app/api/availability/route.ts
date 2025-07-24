@@ -61,7 +61,7 @@ function getDayName(date: Date) {
 }
 
 function getDefaultPrice(date: Date) {
-  return isWeekend(date) ? 1600 : 1200;
+  return isWeekend(date) ? 1600 : 990;
 }
 
 function calculateDiscountedTotal(prices: number[]): { original: number, discounted: number } {
@@ -69,11 +69,7 @@ function calculateDiscountedTotal(prices: number[]): { original: number, discoun
   let discounted = 0;
   for (let i = 0; i < prices.length; i++) {
     original += prices[i];
-    if (i === 0) {
-      discounted += prices[i];
-    } else {
-      discounted += Math.max(prices[i] - 200, 0);
-    }
+    discounted += prices[i]; // No discount for extra nights
   }
   return { original, discounted };
 }
@@ -305,15 +301,21 @@ export async function POST(req: NextRequest) {
             if (!isNaN(parsedPrice) && parsedPrice >= 100) {
               extraNightOriginal = parsedPrice;
             }
-            const extraNightDiscounted = Math.max(extraNightOriginal - 200, 0);
             const allNightsPrices = [...prices, extraNightOriginal];
             const { original: newOriginalTotal, discounted: newTotal } = calculateDiscountedTotal(allNightsPrices);
+            // If all nights are midweek, set originalTotal to 1200 * nights and total to 990 * nights
+            let finalOriginal = newOriginalTotal;
+            let finalTotal = newTotal;
+            if (allNightsPrices.length > 1 && allNightsPrices.every(p => p === 990)) {
+              finalOriginal = 1200 * allNightsPrices.length;
+              finalTotal = 990 * allNightsPrices.length;
+            }
             extraNightSuggestion = {
               start: beforeISO,
               end: checkOut,
               nights: nights.length + 1,
-              total: newTotal,
-              originalTotal: newOriginalTotal,
+              total: finalTotal,
+              originalTotal: finalOriginal,
             };
           }
         }
@@ -328,9 +330,15 @@ export async function POST(req: NextRequest) {
             if (!isNaN(parsedPrice) && parsedPrice >= 100) {
               extraNightOriginal = parsedPrice;
             }
-            const extraNightDiscounted = Math.max(extraNightOriginal - 200, 0);
             const allNightsPrices = [...prices, extraNightOriginal];
             const { original: newOriginalTotal, discounted: newTotal } = calculateDiscountedTotal(allNightsPrices);
+            // If all nights are midweek, set originalTotal to 1200 * nights and total to 990 * nights
+            let finalOriginal = newOriginalTotal;
+            let finalTotal = newTotal;
+            if (allNightsPrices.length > 1 && allNightsPrices.every(p => p === 990)) {
+              finalOriginal = 1200 * allNightsPrices.length;
+              finalTotal = 990 * allNightsPrices.length;
+            }
             // The new end should be one day after the original checkOut
             const newEndDate = new Date(checkOut);
             newEndDate.setDate(newEndDate.getDate() + 1);
@@ -339,8 +347,8 @@ export async function POST(req: NextRequest) {
               start: checkIn,
               end: newEndISO,
               nights: nights.length + 1,
-              total: newTotal,
-              originalTotal: newOriginalTotal,
+              total: finalTotal,
+              originalTotal: finalOriginal,
             };
           }
         }
@@ -357,6 +365,21 @@ export async function POST(req: NextRequest) {
 
   const { original, discounted } = calculateDiscountedTotal(prices);
 
+  // If it's a single midweek night, set originalTotal to 1200 and total to 990
+  let finalOriginal = original;
+  let finalDiscounted = discounted;
+  if (nights.length === 1) {
+    const d = nights[0];
+    if (!isWeekend(d)) {
+      finalOriginal = 1200;
+      finalDiscounted = 990;
+    }
+  } else if (nights.length > 1 && prices.every(p => p === 990)) {
+    // All nights are midweek
+    finalOriginal = 1200 * nights.length;
+    finalDiscounted = 990 * nights.length;
+  }
+
   // console.log(`Final result: available=${available}, total=${discounted}, originalTotal=${original}, nights=${nights.length}`);
 
   // Normalize checkIn and checkOut to YYYY-MM-DD
@@ -371,15 +394,71 @@ export async function POST(req: NextRequest) {
     return '';
   }
 
+  // Helper to calculate original and sale prices for a range
+  function getOriginalAndSale(prices: number[]): { original: number, sale: number } {
+    if (prices.length > 0 && prices.every(p => p === 990)) {
+      return { original: 1200 * prices.length, sale: 990 * prices.length };
+    } else if (prices.length > 0 && prices.every(p => p === 1600)) {
+      return { original: 1600 * prices.length, sale: 1600 * prices.length };
+    } else {
+      // Mixed: original is 1200 for midweek, 1600 for weekend; sale is 990 for midweek, 1600 for weekend
+      let original = 0;
+      let sale = 0;
+      for (const p of prices) {
+        if (p === 990) {
+          original += 1200;
+          sale += 990;
+        } else if (p === 1600) {
+          original += 1600;
+          sale += 1600;
+        } else {
+          original += p;
+          sale += p;
+        }
+      }
+      return { original, sale };
+    }
+  }
+
+  // Patch alternatives and sameDayPatternAlternatives
+  function patchAlternatives(alts: any[]): any[] {
+    return alts.map(alt => {
+      // Reconstruct the date range
+      const start = new Date(alt.start);
+      const end = new Date(alt.end);
+      const nights = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      let prices: number[] = [];
+      for (let i = 0; i < nights; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        prices.push(getDefaultPrice(d));
+      }
+      let original, sale;
+      if (nights === 1 && prices[0] === 990) {
+        original = 1200;
+        sale = 990;
+      } else {
+        const res = getOriginalAndSale(prices);
+        original = res.original;
+        sale = res.sale;
+      }
+      return { ...alt, originalTotal: original, total: sale };
+    });
+  }
+
+  // Patch alternatives before returning
+  const patchedAlternatives = patchAlternatives(alternatives);
+  const patchedSameDayPatternAlternatives = patchAlternatives(sameDayPatternAlternatives);
+
   return NextResponse.json({
     available,
-    total: discounted,
-    originalTotal: original,
+    total: finalDiscounted,
+    originalTotal: finalOriginal,
     nights: nights.length,
     checkIn: toYMD(normCheckIn),
     checkOut: toYMD(normCheckOut),
-    alternatives: alternatives.map(a => ({ ...a, start: toYMD(a.start), end: toYMD(a.end) })),
-    sameDayPatternAlternatives: sameDayPatternAlternatives.map(a => ({ ...a, start: toYMD(a.start), end: toYMD(a.end) })),
+    alternatives: patchedAlternatives.map(a => ({ ...a, start: toYMD(a.start), end: toYMD(a.end) })),
+    sameDayPatternAlternatives: patchedSameDayPatternAlternatives.map(a => ({ ...a, start: toYMD(a.start), end: toYMD(a.end) })),
     extraNightSuggestion: extraNightSuggestion ? { ...extraNightSuggestion, start: toYMD(extraNightSuggestion.start), end: toYMD(extraNightSuggestion.end) } : null
   });
 } 

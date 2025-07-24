@@ -43,7 +43,7 @@ function isWeekend(date: Date) {
 }
 
 function getDefaultPrice(date: Date) {
-  return isWeekend(date) ? 1600 : 1200;
+  return isWeekend(date) ? 1600 : 990;
 }
 
 export async function POST(req: NextRequest) {

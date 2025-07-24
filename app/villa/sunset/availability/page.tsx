@@ -285,10 +285,12 @@ export default function AvailabilityPage() {
                 </div>
                 <div className="text-lg text-green-900 mb-2">{t('availability.totalPrice')}</div>
                 <div className="flex flex-col items-center mb-6">
-                  {result.nights && result.nights > 1 && typeof result.originalTotal === 'number' && (
+                  {typeof result.originalTotal === 'number' && typeof result.total === 'number' && result.originalTotal > result.total && (
                     <span className="text-2xl text-gray-400 line-through mb-1">₪{result.originalTotal}</span>
                   )}
-                  <span className="text-5xl font-extrabold text-green-800">₪{result.total}</span>
+                  {typeof result.total === 'number' && (
+                    <span className="text-5xl font-extrabold text-green-800">₪{result.total}</span>
+                  )}
                 </div>
                 <a
                   href={`https://wa.me/972533920842?text=${encodeURIComponent(getWhatsappMessage(currentCheckIn, currentCheckOut, t, dir === 'rtl' ? 'ar' : 'en', result.nights))}`}
@@ -374,7 +376,7 @@ export default function AvailabilityPage() {
                           {onlyDate(alt.start)} ({getDayName(alt.start, t)}) {t('availability.to')} {onlyDate(alt.end)} ({getDayName(alt.end, t)}) ({alt.nights} {t('availability.nightsLabel')})
                         </span>
                         <span className="flex flex-col items-end">
-                          {alt.nights > 1 && typeof alt.originalTotal === 'number' && (
+                          {typeof alt.originalTotal === 'number' && typeof alt.total === 'number' && alt.originalTotal > alt.total && (
                             <span className="text-gray-400 line-through text-lg">₪{alt.originalTotal}</span>
                           )}
                           <span className="font-bold text-green-700 text-lg">₪{alt.total}</span>
@@ -408,7 +410,7 @@ export default function AvailabilityPage() {
                           {onlyDate(alt.start)} ({getDayName(alt.start, t)}) {t('availability.to')} {onlyDate(alt.end)} ({getDayName(alt.end, t)}) ({alt.nights} {t('availability.nightsLabel')})
                         </span>
                         <span className="flex flex-col items-end">
-                          {alt.nights > 1 && typeof alt.originalTotal === 'number' && (
+                          {typeof alt.originalTotal === 'number' && typeof alt.total === 'number' && alt.originalTotal > alt.total && (
                             <span className="text-gray-400 line-through text-lg">₪{alt.originalTotal}</span>
                           )}
                           <span className="font-bold text-green-700 text-lg">₪{alt.total}</span>

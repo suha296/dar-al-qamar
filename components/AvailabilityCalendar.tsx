@@ -190,19 +190,23 @@ export function AvailabilityCalendar({
     return true;
   };
 
-  // Same discount calculation logic as the API
-  const calculateDiscountedTotal = (prices: number[]): { original: number, discounted: number } => {
+  // Calculate original and sale prices for a date range
+  const calculateOriginalAndSale = (prices: number[]): { original: number, sale: number } => {
     let original = 0;
-    let discounted = 0;
-    for (let i = 0; i < prices.length; i++) {
-      original += prices[i];
-      if (i === 0) {
-        discounted += prices[i];
+    let sale = 0;
+    for (const p of prices) {
+      if (p === 990) {
+        original += 1200;
+        sale += 990;
+      } else if (p === 1600) {
+        original += 1600;
+        sale += 1600;
       } else {
-        discounted += Math.max(prices[i] - 200, 0);
+        original += p;
+        sale += p;
       }
     }
-    return { original, discounted };
+    return { original, sale };
   };
 
   // Function to get all prices for a date range
@@ -222,7 +226,7 @@ export function AvailabilityCalendar({
       } else {
         // Fallback to default price if not in calendar data
         const isWeekend = checkDate.getDay() === 4 || checkDate.getDay() === 5;
-        prices.push(isWeekend ? 1600 : 1200);
+        prices.push(isWeekend ? 1600 : 990);
       }
     }
     return prices;
@@ -274,11 +278,11 @@ export function AvailabilityCalendar({
         setSelectedDates([start, end]);
         const isAvailable = checkDateRangeAvailability(start, end);
         const prices = getDateRangePrices(start, end);
-        const { original, discounted } = calculateDiscountedTotal(prices);
+        const { original, sale } = calculateOriginalAndSale(prices);
         const nights = 1;
         onDateSelect?.(start, end, {
           available: isAvailable,
-          total: discounted,
+          total: sale,
           originalTotal: original,
           nights: nights
         });
@@ -287,11 +291,11 @@ export function AvailabilityCalendar({
         setSelectedDates([start, end]);
         const isAvailable = checkDateRangeAvailability(start, end);
         const prices = getDateRangePrices(start, end);
-        const { original, discounted } = calculateDiscountedTotal(prices);
+        const { original, sale } = calculateOriginalAndSale(prices);
         const nights = Math.round((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24));
         onDateSelect?.(start, end, {
           available: isAvailable,
-          total: discounted,
+          total: sale,
           originalTotal: original,
           nights: nights
         });
@@ -300,11 +304,11 @@ export function AvailabilityCalendar({
         setSelectedDates([end, start]);
         const isAvailable = checkDateRangeAvailability(end, start);
         const prices = getDateRangePrices(end, start);
-        const { original, discounted } = calculateDiscountedTotal(prices);
+        const { original, sale } = calculateOriginalAndSale(prices);
         const nights = Math.round((new Date(start).getTime() - new Date(end).getTime()) / (1000 * 60 * 60 * 24));
         onDateSelect?.(end, start, {
           available: isAvailable,
-          total: discounted,
+          total: sale,
           originalTotal: original,
           nights: nights
         });
@@ -382,7 +386,7 @@ export function AvailabilityCalendar({
             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
             aria-label={collapsed ? t('calendar.expand') : t('calendar.collapse')}
           >
-            {collapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+            {collapsed ? <ChevronDown className="w-5 h-5 text-blue-600" /> : <ChevronUp className="w-5 h-5 text-blue-600" />}
           </button>
         </div>
       </div>
